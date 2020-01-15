@@ -39,7 +39,7 @@ class Graph:
             self.add_vertex(from_key, from_val)
         if to_key not in self.vertices:
             self.add_vertex(to_key, to_val)
-        self.vertices[from_key].neighbors.update(to_key=self.vertices[to_key])
+        self.vertices[from_key].neighbors[to_key] = self.vertices[to_key]
 
     def __getitem__(self, key):
         return self.vertices[key]
