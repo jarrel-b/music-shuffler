@@ -1,4 +1,5 @@
 import argparse
+import csv
 from collections import defaultdict
 from typing import Dict
 from typing import List
@@ -131,10 +132,7 @@ def create_args():
     parser.add_argument("library_file", type=str, help="Path to library file")
     parser.add_argument("out_file", type=str, help="Outfile to save results")
     parser.add_argument(
-        "--duration",
-        dest="duration",
-        type=int,
-        help="Playlist length in minutes",
+        "--duration", type=int, help="Playlist length in minutes",
     )
     return parser
 
@@ -142,14 +140,14 @@ def create_args():
 def parse_file(track_file: str) -> Set:
     library = set()
     with open(track_file, "r") as f:
-        for line in f:
-            args = line.split(DELIMITER)
+        reader = csv.reader(f, delimiter=DELIMITER)
+        for line in reader:
             track = Track(
-                title=args[0],
-                artist=args[1],
-                album=args[2],
-                bpm=int(args[3]),
-                length=int(args[4]),
+                title=line[0],
+                artist=line[1],
+                album=line[2],
+                bpm=int(line[3]),
+                length=int(line[4]),
             )
             library.add(track)
     return library
@@ -157,21 +155,17 @@ def parse_file(track_file: str) -> Set:
 
 def write_playlist(playlist: List[Track], out_file: str) -> None:
     with open(out_file, "w") as f:
-        f.write(DELIMITER.join(HEADERS) + "\n")
+        writer = csv.writer(f, delimiter=DELIMITER)
+        writer.writerow(HEADERS)
         for track in playlist:
-            line = (
-                DELIMITER.join(
-                    [
-                        track.title,
-                        track.artist,
-                        track.album,
-                        str(track.bpm),
-                        str(track.length),
-                    ]
-                )
-                + "\n"
-            )
-            f.write(line)
+            line = [
+                track.title,
+                track.artist,
+                track.album,
+                str(track.bpm),
+                str(track.length),
+            ]
+            writer.writerow(line)
 
 
 def main() -> None:
