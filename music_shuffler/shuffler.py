@@ -99,7 +99,7 @@ def traverse_graph(
                 (v.key for v in graph if v.value),
                 key=lambda i: (
                     (i > (1 + THRESHOLD) or i < (1 - THRESHOLD))
-                    * abs(playlist[-1].bpm - 1)
+                    * abs(playlist[-1].bpm - i)
                 ),
             )
             vertex = graph[sorted_keys[0]]
