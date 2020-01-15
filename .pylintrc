@@ -1,0 +1,5 @@
+[MESSAGES CONTROL]
+# Pylint will add support for pyproject.toml in the 2.5 release.
+disable=
+	missing-docstring,
+	bad-continuation

@@ -1,7 +1,11 @@
 import argparse
 from collections import defaultdict
+from typing import Dict
+from typing import List
+from typing import NamedTuple
+from typing import Optional
+from typing import Set
 
-from typing import Optional, Dict, NamedTuple, List, Set
 
 THRESHOLD = 0.05
 DELIMITER = "\t"
@@ -48,7 +52,7 @@ class Graph:
         return iter(self.vertices.values())
 
 
-def score(track: Track, count: int, playlist: List[Track]) -> float:
+def penalty_score(track: Track, count: int, playlist: List[Track]) -> float:
     last_artist = playlist[-1].artist if playlist else ""
     score = 0.7 * (track.artist == last_artist)
     score += (0.3 * (count / len(playlist))) if playlist else 0
@@ -67,7 +71,7 @@ def dfs(
             return
         vertex.value = sorted(
             vertex.value,
-            key=lambda i: score(i, penalty[i.artist], playlist),
+            key=lambda i: penalty_score(i, penalty[i.artist], playlist),
             reverse=True,
         )
         to_add = vertex.value.pop()
@@ -85,7 +89,9 @@ def in_bpm_range(bpm_a: int, bpm_b: int) -> bool:
     return bpm_a * (1 - THRESHOLD) <= bpm_b <= bpm_a * (1 + THRESHOLD)
 
 
-def traverse_graph(graph: Graph, duration: Optional[int] = None) -> List[Track]:
+def traverse_graph(
+    graph: Graph, duration: Optional[int] = None
+) -> List[Track]:
     playlist: List[Track] = []
     vertex = None
     penalty: Dict[str, int] = defaultdict(int)
@@ -157,13 +163,18 @@ def write_playlist(playlist: List[Track], out_file: str) -> None:
     with open(out_file, "w") as f:
         f.write(DELIMITER.join(HEADERS) + "\n")
         for track in playlist:
-            line = DELIMITER.join([
-                track.title,
-                track.artist,
-                track.album,
-                str(track.bpm),
-                str(track.length),
-            ]) + "\n"
+            line = (
+                DELIMITER.join(
+                    [
+                        track.title,
+                        track.artist,
+                        track.album,
+                        str(track.bpm),
+                        str(track.length),
+                    ]
+                )
+                + "\n"
+            )
             f.write(line)
 
 

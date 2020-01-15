@@ -9,7 +9,7 @@ I didn't like how the Apple music app shuffled music, and I wanted a playlist th
 Run `pip install -r requirements-dev.txt` to install the project dependencies. You can test the build by running `make test`.
 
 ### Usage
-Run `python shuffler.py -h` to bring up the help prompt.
+Run `python music_shuffler/shuffler.py -h` to bring up the help prompt.
 
 ### To Dos
 Apple music unfortunately does not have BPM information for tracks, unless you tag it manually. Eventually, I'd like to have the input and output file generated in a format that is easily importable to my library.

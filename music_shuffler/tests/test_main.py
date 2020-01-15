@@ -1,23 +1,15 @@
 from typing import List
 
-import shuffler
+from music_shuffler import shuffler
 
 
 def create_bpm_bucket(bpm: int, length: int) -> List[shuffler.Track]:
     return [
         shuffler.Track(
-            title=None,
-            artist=None,
-            album=None,
-            bpm=bpm,
-            length=1,
+            title="title", artist="artist", album="album", bpm=bpm, length=1
         )
         for _ in range(length)
     ]
-
-
-def test_smoke():
-    shuffler.main()
 
 
 def test_traverse_graph_empty_graph():
@@ -45,12 +37,9 @@ def test_traverse_graph_single_node_with_tracks():
     graph.add_vertex(100, bpm100)
     expected = [
         shuffler.Track(
-            title=None,
-            artist=None,
-            album=None,
-            bpm=100,
-            length=1,
-        ) for _ in range(10)
+            title="title", artist="artist", album="album", bpm=100, length=1
+        )
+        for _ in range(10)
     ]
 
     actual = shuffler.traverse_graph(graph)
@@ -80,31 +69,25 @@ def test_traverse_graph_with_nested_children():
 def test_traverse_graph_creates_no_consecutive_artists():
     artist_a = []
     for _ in range(5):
-        artist_a.append(shuffler.Track(
-            title=None,
-            artist="a",
-            album=None,
-            bpm=100,
-            length=1,
-        ))
+        artist_a.append(
+            shuffler.Track(
+                title=None, artist="a", album=None, bpm=100, length=1,
+            )
+        )
     artist_b = []
     for _ in range(5):
-        artist_b.append(shuffler.Track(
-            title=None,
-            artist="b",
-            album=None,
-            bpm=100,
-            length=1,
-        ))
+        artist_b.append(
+            shuffler.Track(
+                title=None, artist="b", album=None, bpm=100, length=1,
+            )
+        )
     artist_c = []
     for _ in range(5):
-        artist_c.append(shuffler.Track(
-            title=None,
-            artist="c",
-            album=None,
-            bpm=100,
-            length=1,
-        ))
+        artist_c.append(
+            shuffler.Track(
+                title=None, artist="c", album=None, bpm=100, length=1,
+            )
+        )
     graph = shuffler.Graph()
     graph.add_vertex(100, artist_a + artist_b + artist_c)
 
