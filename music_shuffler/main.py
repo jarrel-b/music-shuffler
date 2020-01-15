@@ -20,7 +20,6 @@ class Vertex:
         self.key = key
         self.value = value
         self.neighbors: Dict[int, Vertex] = {}
-        self.state: Optional[str] = None
         self.predeccesor: Optional[Vertex] = None
 
     def add_neighbor(self, neighbor) -> None:
@@ -51,42 +50,51 @@ class Graph:
 def score(
     track: Track, count: int, length: int, last_artist: str
 ) -> float:
-    # Penalize tracks if the artist mathces the last one added and
-    # if it appears frequently in the playlist.
     score = 0.7 * (track.artist == last_artist)
     score += (0.3 * (count / length)) if length else 0
     return score
 
 
-def pop_from_vertex(
-    vertex: Vertex, playlist: List[Track], penalty: Dict[str, int],
+def dfs(
+    vertex: Vertex,
+    playlist: List[Track],
+    penalty: Dict[str, int],
+    duration: Optional[int] = None,
+    total: int = 0,
 ) -> None:
     if vertex.value:
-        last = playlist[-1].artist if playlist else ""
+        if duration and total >= duration:
+            return
         vertex.value = sorted(
             vertex.value,
-            key=lambda i: score(i, penalty[i.artist], len(playlist), last),
+            key=lambda i: score(
+                i,
+                penalty[i.artist],
+                len(playlist),
+                playlist[-1].artist if playlist else "",
+            ),
             reverse=True,
         )
         to_add = vertex.value.pop()
         playlist.append(to_add)
+        total += to_add.length
         penalty[to_add.artist] += 1
     if not vertex.value:
-        vertex.state = "done"
+        return
     for neighbor in vertex.neighbors.values():
-        if vertex.state != "done":
-            pop_from_vertex(neighbor, playlist, penalty)
+        if vertex.value:
+            dfs(neighbor, playlist, penalty, duration=duration, total=total)
 
 
 def in_bpm_range(bpm_a: int, bpm_b: int) -> bool:
     return bpm_a * (1 - THRESHOLD) <= bpm_b <= bpm_a * (1 + THRESHOLD)
 
 
-def explore_graph(graph: Graph) -> List[Track]:
+def traverse_graph(graph: Graph, duration: Optional[int] = None) -> List[Track]:
     playlist: List[Track] = []
     vertex = None
     penalty: Dict[str, int] = defaultdict(int)
-    while any(v for v in graph if v.state != "done"):
+    while any(v for v in graph if v.value):
         # First start at the center, then try to find a vertex
         # within the range of the last added track's BPM.
         if not vertex:
@@ -94,12 +102,12 @@ def explore_graph(graph: Graph) -> List[Track]:
             vertex = graph[sorted_keys[len(sorted_keys) // 2]]
         else:
             sorted_keys = sorted(
-                (v.key for v in graph if v.state != "done"),
+                (v.key for v in graph if v.value),
                 key=lambda i: in_bpm_range(playlist[-1].bpm, i),
                 reverse=True,
             )
             vertex = graph[sorted_keys[0]]
-        pop_from_vertex(vertex, playlist, penalty)
+        dfs(vertex, playlist, penalty, duration=duration)
     return playlist
 
 
@@ -113,10 +121,9 @@ def create_playlist(library: Set, duration: int = Optional[int]):
         for bpm_b in buckets:
             if bpm_a == bpm_b:
                 continue
-            # As a rule of thumb, tracks should be within 5% BPM of each other.
             if in_bpm_range(bpm_a, bpm_b):
                 graph.add_edge(bpm_a, buckets[bpm_a], bpm_b, buckets[bpm_b])
-    playlist = explore_graph(graph)
+    playlist = traverse_graph(graph, duration=duration)
     return playlist
 
 

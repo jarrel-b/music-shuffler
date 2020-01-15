@@ -10,32 +10,32 @@ def create_bpm_bucket(bpm: int, length: int) -> List[main.Track]:
             artist=None,
             album=None,
             bpm=bpm,
-            length=None,
+            length=1,
         )
         for _ in range(length)
     ]
 
 
-def test_explore_graph_empty_graph():
+def test_traverse_graph_empty_graph():
     graph = main.Graph()
     expected = []
 
-    actual = main.explore_graph(graph)
+    actual = main.traverse_graph(graph)
 
     assert expected == actual
 
 
-def test_explore_graph_single_node_no_tracks():
+def test_traverse_graph_single_node_no_tracks():
     graph = main.Graph()
     graph.add_vertex(100, [])
     expected = []
 
-    actual = main.explore_graph(graph)
+    actual = main.traverse_graph(graph)
 
     assert expected == actual
 
 
-def test_explore_graph_single_node_with_tracks():
+def test_traverse_graph_single_node_with_tracks():
     bpm100 = create_bpm_bucket(100, 10)
     graph = main.Graph()
     graph.add_vertex(100, bpm100)
@@ -45,16 +45,16 @@ def test_explore_graph_single_node_with_tracks():
             artist=None,
             album=None,
             bpm=100,
-            length=None,
+            length=1,
         ) for _ in range(10)
     ]
 
-    actual = main.explore_graph(graph)
+    actual = main.traverse_graph(graph)
 
     assert expected == actual
 
 
-def test_explore_graph_with_nested_children():
+def test_traverse_graph_with_nested_children():
     bpm100 = create_bpm_bucket(100, 5)
     bpm95 = create_bpm_bucket(95, 5)
     bpm92 = create_bpm_bucket(92, 5)
@@ -67,13 +67,13 @@ def test_explore_graph_with_nested_children():
     graph.add_edge(100, bpm100, 105, bpm105)
     expected = bpm100 + bpm95 + bpm92 + bpm90 + bpm105
 
-    actual = main.explore_graph(graph)
+    actual = main.traverse_graph(graph)
     assert len(expected) == len(actual)
     for track in expected:
         assert track in actual
 
 
-def test_explore_graph_creates_no_consecutive_artists():
+def test_traverse_graph_creates_no_consecutive_artists():
     artist_a = []
     for _ in range(5):
         artist_a.append(main.Track(
@@ -81,7 +81,7 @@ def test_explore_graph_creates_no_consecutive_artists():
             artist="a",
             album=None,
             bpm=100,
-            length=None,
+            length=1,
         ))
     artist_b = []
     for _ in range(5):
@@ -90,7 +90,7 @@ def test_explore_graph_creates_no_consecutive_artists():
             artist="b",
             album=None,
             bpm=100,
-            length=None,
+            length=1,
         ))
     artist_c = []
     for _ in range(5):
@@ -99,12 +99,12 @@ def test_explore_graph_creates_no_consecutive_artists():
             artist="c",
             album=None,
             bpm=100,
-            length=None,
+            length=1,
         ))
     graph = main.Graph()
     graph.add_vertex(100, artist_a + artist_b + artist_c)
 
-    actual = main.explore_graph(graph)
+    actual = main.traverse_graph(graph)
     prev = None
     for track in actual:
         if prev:
