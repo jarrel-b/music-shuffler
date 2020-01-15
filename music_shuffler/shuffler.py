@@ -82,10 +82,6 @@ def dfs(
             dfs(neighbor, playlist, penalty, duration=duration, total=total)
 
 
-def in_bpm_range(bpm_a: int, bpm_b: int) -> bool:
-    return bpm_a * (1 - THRESHOLD) <= bpm_b <= bpm_a * (1 + THRESHOLD)
-
-
 def traverse_graph(
     graph: Graph, duration: Optional[int] = None
 ) -> List[Track]:
@@ -101,8 +97,10 @@ def traverse_graph(
         else:
             sorted_keys = sorted(
                 (v.key for v in graph if v.value),
-                key=lambda i: in_bpm_range(playlist[-1].bpm, i),
-                reverse=True,
+                key=lambda i: (
+                    (i > (1 + THRESHOLD) or i < (1 - THRESHOLD))
+                    * abs(playlist[-1].bpm - 1)
+                ),
             )
             vertex = graph[sorted_keys[0]]
         dfs(vertex, playlist, penalty, duration=duration)
@@ -119,7 +117,7 @@ def create_playlist(library: Set, duration: int = Optional[int]):
         for bpm_b in buckets:
             if bpm_a == bpm_b:
                 continue
-            if in_bpm_range(bpm_a, bpm_b):
+            if bpm_a * (1 - THRESHOLD) <= bpm_b <= bpm_a * (1 + THRESHOLD):
                 graph.add_edge(bpm_a, buckets[bpm_a], bpm_b, buckets[bpm_b])
     playlist = traverse_graph(graph, duration=duration)
     return playlist

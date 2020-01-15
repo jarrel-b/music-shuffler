@@ -1,4 +1,5 @@
 from typing import List
+from unittest import mock
 
 from music_shuffler import shuffler
 
@@ -10,6 +11,20 @@ def create_bpm_bucket(bpm: int, length: int) -> List[shuffler.Track]:
         )
         for _ in range(length)
     ]
+
+
+def test_smoke():
+    with mock.patch(
+        "music_shuffler.shuffler.create_args", autospec=True
+    ), mock.patch(
+        "music_shuffler.shuffler.parse_file", autospec=True
+    ) as mock_parse_file, mock.patch(
+        "music_shuffler.shuffler.write_playlist", autospec=True
+    ):
+        library = set()
+        mock_parse_file.return_value = library
+
+        shuffler.main()
 
 
 def test_traverse_graph_empty_graph():
