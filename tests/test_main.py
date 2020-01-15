@@ -16,6 +16,10 @@ def create_bpm_bucket(bpm: int, length: int) -> List[shuffler.Track]:
     ]
 
 
+def test_smoke():
+    shuffler.main()
+
+
 def test_traverse_graph_empty_graph():
     graph = shuffler.Graph()
     expected = []

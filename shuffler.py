@@ -7,6 +7,7 @@ THRESHOLD = 0.05
 DELIMITER = "\t"
 HEADERS = ["title", "artist", "album", "bpm", "length"]
 
+
 class Track(NamedTuple):
     title: str
     artist: str
