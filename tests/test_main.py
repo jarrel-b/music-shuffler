@@ -1,11 +1,11 @@
 from typing import List
 
-from music_shuffler import main
+import shuffler
 
 
-def create_bpm_bucket(bpm: int, length: int) -> List[main.Track]:
+def create_bpm_bucket(bpm: int, length: int) -> List[shuffler.Track]:
     return [
-        main.Track(
+        shuffler.Track(
             title=None,
             artist=None,
             album=None,
@@ -17,30 +17,30 @@ def create_bpm_bucket(bpm: int, length: int) -> List[main.Track]:
 
 
 def test_traverse_graph_empty_graph():
-    graph = main.Graph()
+    graph = shuffler.Graph()
     expected = []
 
-    actual = main.traverse_graph(graph)
+    actual = shuffler.traverse_graph(graph)
 
     assert expected == actual
 
 
 def test_traverse_graph_single_node_no_tracks():
-    graph = main.Graph()
+    graph = shuffler.Graph()
     graph.add_vertex(100, [])
     expected = []
 
-    actual = main.traverse_graph(graph)
+    actual = shuffler.traverse_graph(graph)
 
     assert expected == actual
 
 
 def test_traverse_graph_single_node_with_tracks():
     bpm100 = create_bpm_bucket(100, 10)
-    graph = main.Graph()
+    graph = shuffler.Graph()
     graph.add_vertex(100, bpm100)
     expected = [
-        main.Track(
+        shuffler.Track(
             title=None,
             artist=None,
             album=None,
@@ -49,7 +49,7 @@ def test_traverse_graph_single_node_with_tracks():
         ) for _ in range(10)
     ]
 
-    actual = main.traverse_graph(graph)
+    actual = shuffler.traverse_graph(graph)
 
     assert expected == actual
 
@@ -60,14 +60,14 @@ def test_traverse_graph_with_nested_children():
     bpm92 = create_bpm_bucket(92, 5)
     bpm90 = create_bpm_bucket(90, 5)
     bpm105 = create_bpm_bucket(105, 5)
-    graph = main.Graph()
+    graph = shuffler.Graph()
     graph.add_edge(100, bpm100, 95, bpm95)
     graph.add_edge(95, bpm95, 92, bpm92)
     graph.add_edge(95, bpm95, 90, bpm90)
     graph.add_edge(100, bpm100, 105, bpm105)
     expected = bpm100 + bpm95 + bpm92 + bpm90 + bpm105
 
-    actual = main.traverse_graph(graph)
+    actual = shuffler.traverse_graph(graph)
     assert len(expected) == len(actual)
     for track in expected:
         assert track in actual
@@ -76,7 +76,7 @@ def test_traverse_graph_with_nested_children():
 def test_traverse_graph_creates_no_consecutive_artists():
     artist_a = []
     for _ in range(5):
-        artist_a.append(main.Track(
+        artist_a.append(shuffler.Track(
             title=None,
             artist="a",
             album=None,
@@ -85,7 +85,7 @@ def test_traverse_graph_creates_no_consecutive_artists():
         ))
     artist_b = []
     for _ in range(5):
-        artist_b.append(main.Track(
+        artist_b.append(shuffler.Track(
             title=None,
             artist="b",
             album=None,
@@ -94,17 +94,17 @@ def test_traverse_graph_creates_no_consecutive_artists():
         ))
     artist_c = []
     for _ in range(5):
-        artist_c.append(main.Track(
+        artist_c.append(shuffler.Track(
             title=None,
             artist="c",
             album=None,
             bpm=100,
             length=1,
         ))
-    graph = main.Graph()
+    graph = shuffler.Graph()
     graph.add_vertex(100, artist_a + artist_b + artist_c)
 
-    actual = main.traverse_graph(graph)
+    actual = shuffler.traverse_graph(graph)
     prev = None
     for track in actual:
         if prev:
@@ -116,6 +116,6 @@ def test_create_playlist_with_empty_library_creates_empty_playlist():
     library = {}
     expected = []
 
-    playlist = main.create_playlist(library)
+    playlist = shuffler.create_playlist(library)
 
     assert expected == playlist

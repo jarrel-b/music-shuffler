@@ -47,11 +47,10 @@ class Graph:
         return iter(self.vertices.values())
 
 
-def score(
-    track: Track, count: int, length: int, last_artist: str
-) -> float:
+def score(track: Track, count: int, playlist: List[Track]) -> float:
+    last_artist = playlist[-1].artist if playlist else ""
     score = 0.7 * (track.artist == last_artist)
-    score += (0.3 * (count / length)) if length else 0
+    score += (0.3 * (count / len(playlist))) if playlist else 0
     return score
 
 
@@ -67,12 +66,7 @@ def dfs(
             return
         vertex.value = sorted(
             vertex.value,
-            key=lambda i: score(
-                i,
-                penalty[i.artist],
-                len(playlist),
-                playlist[-1].artist if playlist else "",
-            ),
+            key=lambda i: score(i, penalty[i.artist], playlist),
             reverse=True,
         )
         to_add = vertex.value.pop()
