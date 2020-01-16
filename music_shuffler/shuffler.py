@@ -61,11 +61,10 @@ def dfs(
     playlist: List[Track],
     penalty: Dict[str, int],
     duration: Optional[int] = None,
-    total: int = 0,
 ) -> None:
+    if duration and sum(t.length for t in playlist) >= duration:
+        return
     if vertex.value:
-        if duration and total >= duration:
-            return
         vertex.value = sorted(
             vertex.value,
             key=lambda i: penalty_score(i, penalty[i.artist], playlist),
@@ -73,13 +72,12 @@ def dfs(
         )
         to_add = vertex.value.pop()
         playlist.append(to_add)
-        total += to_add.length
         penalty[to_add.artist] += 1
     if not vertex.value:
         return
     for neighbor in vertex.neighbors.values():
         if vertex.value:
-            dfs(neighbor, playlist, penalty, duration=duration, total=total)
+            dfs(neighbor, playlist, penalty, duration=duration)
 
 
 def traverse_graph(
@@ -91,6 +89,8 @@ def traverse_graph(
     while any(v for v in graph if v.value):
         # First start at the center, then try to find a vertex
         # within the range of the last added track's BPM.
+        if duration and sum(t.length for t in playlist) >= duration:
+            break
         if not vertex:
             sorted_keys = sorted(graph.vertices)
             vertex = graph[sorted_keys[len(sorted_keys) // 2]]
@@ -107,7 +107,7 @@ def traverse_graph(
     return playlist
 
 
-def create_playlist(library: Set, duration: int = Optional[int]):
+def create_playlist(library: Set, duration: Optional[int] = None):
     buckets: Dict[int, List[Track]] = defaultdict(list)
     graph = Graph()
     # Partition tracks by their BPM.
@@ -115,10 +115,11 @@ def create_playlist(library: Set, duration: int = Optional[int]):
         buckets[int(track.bpm)].append(track)
     for bpm_a in buckets:
         for bpm_b in buckets:
-            if bpm_a == bpm_b:
-                continue
             if bpm_a * (1 - THRESHOLD) <= bpm_b <= bpm_a * (1 + THRESHOLD):
                 graph.add_edge(bpm_a, buckets[bpm_a], bpm_b, buckets[bpm_b])
+            else:
+                graph.add_vertex(bpm_a, buckets[bpm_a])
+                graph.add_vertex(bpm_b, buckets[bpm_b])
     playlist = traverse_graph(graph, duration=duration)
     return playlist
 

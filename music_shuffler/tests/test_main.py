@@ -1,3 +1,4 @@
+import random
 from typing import List
 from unittest import mock
 
@@ -16,12 +17,25 @@ def create_bpm_bucket(bpm: int, length: int) -> List[shuffler.Track]:
 def test_smoke():
     with mock.patch(
         "music_shuffler.shuffler.create_args", autospec=True
-    ), mock.patch(
+    ) as mock_create_args, mock.patch(
         "music_shuffler.shuffler.parse_file", autospec=True
     ) as mock_parse_file, mock.patch(
         "music_shuffler.shuffler.write_playlist", autospec=True
     ):
+        mock_parser = mock.Mock()
+        mock_parser.parse_args.return_value = mock.Mock(duration=None)
+        mock_create_args.return_value = mock_parser
         library = set()
+        for i in range(1000):
+            library.add(
+                shuffler.Track(
+                    title=str(i),
+                    artist=str(i),
+                    album=str(i),
+                    bpm=random.randint(10, 100),
+                    length=1,
+                )
+            )
         mock_parse_file.return_value = library
 
         shuffler.main()
@@ -115,9 +129,65 @@ def test_traverse_graph_creates_no_consecutive_artists():
 
 
 def test_create_playlist_with_empty_library_creates_empty_playlist():
-    library = {}
+    library = set()
     expected = []
 
     playlist = shuffler.create_playlist(library)
 
     assert expected == playlist
+
+
+def test_create_playlist_with_single_bucket_returns_entire_library():
+    library = set()
+    for i in "abcdefghijklmnopqrstuvwxyz":
+        library.add(
+            shuffler.Track(title=i, artist=i, album=i, bpm=100, length=1)
+        )
+
+    playlist = shuffler.create_playlist(library)
+
+    for track in library:
+        assert track in playlist
+
+
+def test_create_playlist_with_no_overlapping_bpms_returns_entire_library():
+    library = set()
+    bpm = 10
+    for i in "abcdefghijklmnopqrstuvwxyz":
+        library.add(
+            shuffler.Track(title=i, artist=i, album=i, bpm=bpm, length=1)
+        )
+        bpm += 10 * (1 + shuffler.THRESHOLD)
+
+    playlist = shuffler.create_playlist(library)
+
+    for track in library:
+        assert track in playlist
+
+
+def test_create_playlist_duration_lt_library_length_returns_expected():
+    library = set()
+    for i in range(50):
+        library.add(
+            shuffler.Track(title=i, artist=i, album=i, bpm=100, length=1)
+        )
+    duration = 10
+
+    playlist = shuffler.create_playlist(library, duration=10)
+
+    playlist_duration = sum(track.length for track in playlist)
+    assert playlist_duration == duration
+
+
+def test_create_playlist_duration_gt_than_library_length_returns_expected():
+    library = set()
+    for i in range(50):
+        library.add(
+            shuffler.Track(title=i, artist=i, album=i, bpm=100, length=1)
+        )
+    duration = 100
+
+    playlist = shuffler.create_playlist(library, duration=duration)
+
+    playlist_duration = sum(track.length for track in playlist)
+    assert playlist_duration == len(library)
