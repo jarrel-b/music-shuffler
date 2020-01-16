@@ -80,6 +80,11 @@ def dfs(
             dfs(neighbor, playlist, penalty, duration=duration)
 
 
+def score_bpm(current: int, last: int) -> float:
+    outside = current > (1 + THRESHOLD) or current < (1 - THRESHOLD)
+    return outside * abs(last - current)
+
+
 def traverse_graph(
     graph: Graph, duration: Optional[int] = None
 ) -> List[Track]:
@@ -96,11 +101,8 @@ def traverse_graph(
             vertex = graph[sorted_keys[len(sorted_keys) // 2]]
         else:
             sorted_keys = sorted(
-                (v.key for v in graph if v.value),
-                key=lambda i: (
-                    (i > (1 + THRESHOLD) or i < (1 - THRESHOLD))
-                    * abs(playlist[-1].bpm - i)
-                ),
+                [v.key for v in graph if v.value],
+                key=lambda i: score_bpm(i, playlist[-1].bpm),
             )
             vertex = graph[sorted_keys[0]]
         dfs(vertex, playlist, penalty, duration=duration)
