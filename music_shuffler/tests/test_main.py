@@ -36,15 +36,32 @@ def create_bpm_bucket(bpm: int, length: int) -> List[shuffler.Track]:
         ("12:10:05", 43805),
     ],
 )
-def test_parse_time_to_int(time, expected):
-    actual = shuffler.parse_length(time)
+def test_length_to_seconds(time, expected):
+    actual = shuffler.length_to_seconds(time)
 
     assert expected == actual
 
 
-def test_parse_time_invalid_format_raises_error():
+def test_length_to_seconds_invalid_format_raises_error():
     with pytest.raises(ValueError):
-        shuffler.parse_length("18:12:10:00")
+        shuffler.length_to_seconds("18:12:10:00")
+
+
+@pytest.mark.parametrize(
+    "seconds, expected",
+    [
+        (0, "00:00:00"),
+        (1, "00:00:01"),
+        (59, "00:00:59"),
+        (60, "00:01:00"),
+        (3560, "00:59:20"),
+        (43305, "12:01:45"),
+    ],
+)
+def test_seconds_To_length(seconds, expected):
+    actual = shuffler.seconds_to_length(seconds)
+
+    assert expected == actual
 
 
 def test_smoke():

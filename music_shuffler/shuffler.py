@@ -10,7 +10,6 @@ from typing import Set
 
 THRESHOLD = 0.05
 DELIMITER = "\t"
-HEADERS = ["title", "artist", "album", "bpm", "length"]
 
 
 class Track(NamedTuple):
@@ -19,17 +18,6 @@ class Track(NamedTuple):
     album: str
     bpm: int
     length: int
-
-
-def parse_length(time: str) -> int:
-    if not time:
-        return 0
-    seconds = 0
-    for i, part in enumerate(time.split(":")[::-1]):
-        if i > 2:
-            raise ValueError(f"Expected format: hh:mm:ss. Received {time}.")
-        seconds += int(part or 0) * (60 ** i)
-    return seconds
 
 
 class Vertex:
@@ -58,6 +46,27 @@ class Graph:
 
     def __iter__(self):
         return iter(self.vertices.values())
+
+
+def length_to_seconds(time: str) -> int:
+    if not time:
+        return 0
+    seconds = 0
+    for i, part in enumerate(time.split(":")[::-1]):
+        if i > 2:
+            raise ValueError(f"Expected format: hh:mm:ss. Received {time}.")
+        seconds += int(part or 0) * (60 ** i)
+    return seconds
+
+
+def seconds_to_length(seconds: int) -> str:
+    i = 2
+    parts = []
+    while i >= 0:
+        parts.append(str(seconds // (60 ** i)).zfill(2))
+        seconds = seconds % (60 ** i)
+        i -= 1
+    return ":".join(parts)
 
 
 def penalty_score(track: Track, count: int, playlist: List[Track]) -> float:
@@ -159,7 +168,7 @@ def parse_file(track_file: str) -> Set:
                 artist=line[1],
                 album=line[2],
                 bpm=int(line[3]),
-                length=parse_length(line[4]),
+                length=length_to_seconds(line[4]),
             )
             library.add(track)
     return library
@@ -168,14 +177,14 @@ def parse_file(track_file: str) -> Set:
 def write_playlist(playlist: List[Track], out_file: str) -> None:
     with open(out_file, "w") as f:
         writer = csv.writer(f, delimiter=DELIMITER)
-        writer.writerow(HEADERS)
+        writer.writerow(["title", "artist", "album", "bpm", "length"])
         for track in playlist:
             line = [
                 track.title,
                 track.artist,
                 track.album,
                 str(track.bpm),
-                str(track.length),
+                seconds_to_length(track.length),
             ]
             writer.writerow(line)
 
