@@ -153,7 +153,9 @@ def create_args():
     parser.add_argument("library_file", type=str, help="Path to library file")
     parser.add_argument("out_file", type=str, help="Outfile to save results")
     parser.add_argument(
-        "--duration", type=lambda i: i * 60, help="Playlist length in minutes",
+        "--duration",
+        type=lambda i: int(i) * 60,
+        help="Playlist length in minutes",
     )
     return parser
 
