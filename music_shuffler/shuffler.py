@@ -21,6 +21,17 @@ class Track(NamedTuple):
     length: int
 
 
+def parse_length(time: str) -> int:
+    if not time:
+        return 0
+    seconds = 0
+    for i, part in enumerate(time.split(":")[::-1]):
+        if i > 2:
+            raise ValueError(f"Expected format: hh:mm:ss. Received {time}.")
+        seconds += int(part or 0) * (60 ** i)
+    return seconds
+
+
 class Vertex:
     def __init__(self, key, value) -> None:
         self.key = key
@@ -133,7 +144,7 @@ def create_args():
     parser.add_argument("library_file", type=str, help="Path to library file")
     parser.add_argument("out_file", type=str, help="Outfile to save results")
     parser.add_argument(
-        "--duration", type=int, help="Playlist length in minutes",
+        "--duration", type=lambda i: i * 60, help="Playlist length in minutes",
     )
     return parser
 
@@ -148,7 +159,7 @@ def parse_file(track_file: str) -> Set:
                 artist=line[1],
                 album=line[2],
                 bpm=int(line[3]),
-                length=int(line[4]),
+                length=parse_length(line[4]),
             )
             library.add(track)
     return library

@@ -2,6 +2,8 @@ import random
 from typing import List
 from unittest import mock
 
+import pytest
+
 from music_shuffler import shuffler
 
 
@@ -12,6 +14,37 @@ def create_bpm_bucket(bpm: int, length: int) -> List[shuffler.Track]:
         )
         for _ in range(length)
     ]
+
+
+@pytest.mark.parametrize(
+    "time, expected",
+    [
+        (None, 0),
+        ("", 0),
+        (0, 0),
+        (":0", 0),
+        (":00", 0),
+        ("0:00", 0),
+        ("00:00", 0),
+        ("00:00:00", 0),
+        ("5", 5),
+        (":5", 5),
+        (":05", 5),
+        (":12", 12),
+        ("12:05", 725),
+        ("01:00", 60),
+        ("12:10:05", 43805),
+    ],
+)
+def test_parse_time_to_int(time, expected):
+    actual = shuffler.parse_length(time)
+
+    assert expected == actual
+
+
+def test_parse_time_invalid_format_raises_error():
+    with pytest.raises(ValueError):
+        shuffler.parse_length("18:12:10:00")
 
 
 def test_smoke():
